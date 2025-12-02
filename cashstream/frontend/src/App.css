@@ -1,0 +1,408 @@
+:root {
+  --bg: #05010a;
+  --card: #0b0810;
+  --accent1: #6ee7ff; /* cyan */
+  --accent2: #b388ff; /* purple */
+  --muted: #9aa3b2;
+  --glass: rgba(255, 255, 255, 0.03);
+}
+
+/* Global */
+* {
+  box-sizing: border-box;
+}
+body,
+html,
+#root {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+}
+
+/* Background */
+.app-shell {
+  min-height: 100vh;
+  background: radial-gradient(
+      circle at 10% 10%,
+      rgba(123, 61, 255, 0.08),
+      transparent 10%
+    ),
+    radial-gradient(circle at 90% 80%, rgba(94, 234, 255, 0.06), transparent 10%),
+    linear-gradient(180deg, var(--bg) 0%, #02040a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+/* Card */
+.neon-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(6px);
+  width: 880px;
+  max-width: 94%;
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-bg:before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(107, 86, 255, 0.08),
+      transparent 7%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(110, 231, 255, 0.06),
+      transparent 8%
+    );
+  filter: blur(40px);
+  z-index: 0;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+}
+
+/* Header */
+.card__header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: 13px;
+  color: var(--accent2);
+  letter-spacing: 2px;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.neon-title {
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6ee7ff, #b388ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  line-height: 1.1;
+  text-shadow: 0 2px 18px rgba(179, 136, 255, 0.12);
+  letter-spacing: -1px;
+}
+
+.lede {
+  color: var(--muted);
+  margin: 10px 0 0 0;
+  font-size: 15px;
+}
+
+/* Actions */
+.card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.wallet-button {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  color: #05010a;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 8px 24px rgba(106, 180, 255, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(106, 180, 255, 0.3);
+}
+
+.wallet-button:active {
+  transform: translateY(0);
+}
+
+.wallet-button--connected {
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  cursor: default;
+}
+
+.wallet-button--connected:hover {
+  transform: none;
+}
+
+.contract-hint {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  line-height: 1.6;
+}
+
+/* Form */
+.stream-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent1);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.neon-field input {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.neon-field input:hover {
+  border-color: rgba(183, 130, 255, 0.2);
+}
+
+.neon-field input:focus {
+  box-shadow: 0 0 0 3px rgba(107, 86, 255, 0.1);
+  border-color: rgba(183, 130, 255, 0.4);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Primary button */
+.primary {
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.neon-button {
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  color: #05010a;
+  box-shadow: 0 8px 24px rgba(106, 180, 255, 0.2);
+}
+
+.neon-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(106, 180, 255, 0.3);
+}
+
+.neon-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.neon-subtitle {
+  color: var(--accent1);
+  margin-top: 32px;
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Cards */
+.stream-card {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(110, 231, 255, 0.03),
+    rgba(179, 136, 255, 0.03)
+  );
+  transition: all 0.3s ease;
+}
+
+.stream-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(110, 231, 255, 0.1);
+}
+
+.stream-card p {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.stream-card strong {
+  color: var(--accent1);
+  font-weight: 600;
+}
+
+.analytics-card {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(179, 136, 255, 0.05),
+    rgba(110, 231, 255, 0.05)
+  );
+}
+
+.analytics-card p {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+.analytics-card strong {
+  color: var(--accent2);
+  font-weight: 600;
+}
+
+/* Cancel button */
+.cancel-button {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.neon-danger {
+  background: linear-gradient(90deg, #ff6b6b, #ff9a9a);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.2);
+}
+
+.neon-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+}
+
+.neon-danger:active {
+  transform: translateY(0);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  right: 28px;
+  top: 28px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #05010a;
+  font-weight: 700;
+  z-index: 999;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  transform: translateY(-8px);
+  animation: toastIn 0.22s ease;
+}
+
+.toast--success {
+  background: linear-gradient(90deg, var(--accent1), #b0f5d6);
+}
+
+.toast--error {
+  background: linear-gradient(90deg, #ff9a9a, #ff6b6b);
+}
+
+.toast--info {
+  background: linear-gradient(90deg, #a6cfff, #b388ff);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Glow edges */
+.neon-card:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(183, 130, 255, 0.06),
+    transparent
+  );
+  mix-blend-mode: screen;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .app-shell {
+    padding: 24px 16px;
+  }
+  
+  .neon-card {
+    padding: 20px;
+  }
+  
+  .neon-title {
+    font-size: 28px;
+  }
+  
+  .stream-form {
+    padding: 16px;
+  }
+  
+  .card__actions {
+    gap: 12px;
+  }
+}
