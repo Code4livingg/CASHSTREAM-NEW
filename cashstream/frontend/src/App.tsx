@@ -44,6 +44,9 @@ function App() {
   
   // Demo mode: In-memory streams storage
   const [demoStreams, setDemoStreams] = useState<DemoStream[]>([]);
+  
+  // Demo mode: In-memory history storage
+  const [demoHistory, setDemoHistory] = useState<any[]>([]);
 
   // Step 1: Intro Page
   const handleGetStarted = () => {
@@ -117,8 +120,27 @@ function App() {
   // Handle stream canceled
   const handleCancelStream = (streamId: string) => {
     console.log('🗑️ Canceling stream:', streamId);
+    
+    // Find the stream being canceled
+    const canceledStream = demoStreams.find(s => s.streamId === streamId);
+    
+    if (canceledStream) {
+      // Add to history as canceled
+      const historyEntry = {
+        ...canceledStream,
+        status: 'Canceled',
+        timestamp: new Date().toISOString(),
+        historyId: `history-${Date.now()}`,
+        totalStreamed: parseInt(canceledStream.amount) * parseInt(canceledStream.counter),
+      };
+      
+      setDemoHistory(prev => [...prev, historyEntry]);
+      console.log('🎨 Demo: Added to history as canceled');
+    }
+    
+    // Remove from active streams
     setDemoStreams(prev => prev.filter(s => s.streamId !== streamId));
-    console.log('🎨 Demo: Removed stream from demo storage');
+    console.log('🎨 Demo: Removed stream from active streams');
   };
 
   // Navigate back to Dashboard
@@ -169,6 +191,7 @@ function App() {
           provider={wallet.provider}
           onBack={handleBackToDashboard}
           onCreateStream={handleCreateStream}
+          demoHistory={demoHistory}
         />
       )}
     </div>

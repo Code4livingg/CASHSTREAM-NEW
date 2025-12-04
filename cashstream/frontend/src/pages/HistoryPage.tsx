@@ -43,6 +43,8 @@ interface HistoryPageProps {
   onBack?: () => void;
   /** Callback when user wants to create a stream */
   onCreateStream?: () => void;
+  /** Demo mode: Pre-loaded history */
+  demoHistory?: HistoryEntry[];
 }
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CASHSTREAM_ADDRESS ?? '';
@@ -52,6 +54,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   provider,
   onBack,
   onCreateStream,
+  demoHistory = [],
 }) => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,10 +76,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     try {
       const rpcProvider = provider || wallet.provider;
       
-      // Demo mode: Return empty history if no provider
+      // Demo mode: Use demo history if no provider
       if (!rpcProvider) {
-        console.log('🎨 Demo mode: No history to display');
-        setHistory([]);
+        console.log('🎨 Demo mode: Using demo history', demoHistory.length);
+        setHistory(demoHistory);
         setLoading(false);
         setRefreshing(false);
         return;
