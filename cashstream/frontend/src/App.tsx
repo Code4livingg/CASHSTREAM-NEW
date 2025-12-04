@@ -1,419 +1,178 @@
-import { useState, useEffect } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
-import {
-  Args,
-  Account,
-  JsonRpcProvider,
-  Address,
-  strToBytes,
-} from '@massalabs/massa-web3';
-import SplashScreen from './components/SplashScreen';
+import { useState } from 'react';
+import { IntroPage, ConnectWalletPage, DashboardPage, ActiveStreamsPage, CreateStreamPage, HistoryPage } from './pages';
+import type { WalletConnection } from './lib/massaWallet';
+import './styles/design-system.css';
 import './App.css';
 
-type StatusVariant = 'idle' | 'success' | 'error' | 'info';
+/**
+ * App - Main application with onboarding and navigation
+ * 
+ * Steps:
+ * 1. intro - Welcome page with "Get Started" CTA
+ * 2. connect - Wallet connection page with real Massa integration
+ * 3. dashboard - Main dashboard with wallet access
+ * 4. active-streams - View and manage active payment streams
+ * 5. create-stream - Create new payment stream
+ * 6. history - View completed and canceled streams
+ * 
+ * Features:
+ * - Smooth transitions between steps
+ * - Real Massa wallet integration
+ * - Wallet state management
+ * - Navigation between pages
+ * - Design system integration
+ * - Clean component separation
+ */
 
-type StreamForm = {
-  receiver: string;
-  amount: string;
-  interval: string;
-};
+type AppStep = 'intro' | 'connect' | 'dashboard' | 'active-streams' | 'create-stream' | 'history';
 
-type Stream = {
+// Demo stream interface
+interface DemoStream {
   receiver: string;
   amount: string;
   interval: string;
   counter: string;
   streamId: string;
-};
-
-const CONTRACT_ADDRESS = import.meta.env.VITE_CASHSTREAM_ADDRESS ?? '';
-const RPC_URL = import.meta.env.VITE_MASSA_RPC_URL;
+}
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [form, setForm] = useState<StreamForm>({
-    receiver: '',
-    amount: '',
-    interval: '',
-  });
+  // State management for app navigation
+  const [step, setStep] = useState<AppStep>('intro');
+  
+  // Wallet connection state
+  const [wallet, setWallet] = useState<WalletConnection | null>(null);
+  
+  // Demo mode: In-memory streams storage
+  const [demoStreams, setDemoStreams] = useState<DemoStream[]>([]);
 
-  const [status, setStatus] = useState<{ message: string; variant: StatusVariant }>({
-    message: '',
-    variant: 'idle',
-  });
-
-  const [showToast, setShowToast] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [provider, setProvider] = useState<any>(null);
-  const [account, setAccount] = useState<Account | null>(null);
-  const [streams, setStreams] = useState<Stream[]>([]);
-
-  const toast = (message: string, variant: StatusVariant) => {
-    setStatus({ message, variant });
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  // Step 1: Intro Page
+  const handleGetStarted = () => {
+    console.log('📍 Navigation: intro → connect');
+    setStep('connect');
   };
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    // Remove all whitespace for receiver addresses, trim numbers
-    const cleanedValue = name === 'receiver' ? value.replace(/\s/g, '').trim() : value.trim();
-    setForm((prev) => ({ ...prev, [name]: cleanedValue }));
+  // Demo mode: Skip wallet connection with mock data
+  const handleDemoMode = () => {
+    console.log('📍 Navigation: intro → dashboard (demo mode)');
+    const mockWallet: WalletConnection = {
+      address: 'AU12CzXE7mHZSvRxT9vGJKwP8bqKDeMHvPJYQHKvXJpgFKqJqQqN',
+      balance: '1000.0000',
+      provider: undefined as any,
+      account: undefined as any,
+    };
+    setWallet(mockWallet);
+    setStep('dashboard');
   };
 
-  const handleConnect = async () => {
-    const pk = import.meta.env.VITE_PRIVATE_KEY?.trim();
-
-    if (!pk) {
-      toast('Private key missing in .env', 'error');
-      return;
-    }
-
-    try {
-      const acc = await Account.fromPrivateKey(pk);
-      // JsonRpcProvider used for reads only
-      const prov = JsonRpcProvider.fromRPCUrl(RPC_URL);
-      const connectedAddress = acc.address.toString();
-
-      setAccount(acc);
-      setProvider(prov);
-      setWalletConnected(true);
-      // Autofill receiver field with connected wallet address
-      setForm((prev) => ({ ...prev, receiver: connectedAddress }));
-
-      toast(`Wallet connected: ${connectedAddress.slice(0, 8)}...`, 'success');
-
-      // Immediately fetch streams after wallet connects
-      setTimeout(() => fetchStreams(), 500);
-    } catch (err) {
-      console.error('Wallet connection error:', err);
-      toast('Failed to connect wallet.', 'error');
-    }
+  // Step 2: Connect Wallet Page
+  const handleWalletConnected = (walletConnection: WalletConnection) => {
+    console.log('📍 Navigation: connect → dashboard');
+    console.log('💼 Wallet stored:', {
+      address: walletConnection.address,
+      balance: walletConnection.balance,
+    });
+    
+    setWallet(walletConnection);
+    setStep('dashboard');
   };
 
-  const fetchStreams = async () => {
-    if (!CONTRACT_ADDRESS) return;
-
-    try {
-      const pub = JsonRpcProvider.fromRPCUrl(RPC_URL);
-      // First try a JSON-encoded `STREAMS` key (if ASC stores a map or array)
-      const streamKey = [strToBytes('STREAMS')];
-      const streamStorage = await pub.readStorage(CONTRACT_ADDRESS, streamKey);
-
-      if (streamStorage && streamStorage[0] && streamStorage[0].length > 0) {
-        try {
-          const raw = new TextDecoder().decode(streamStorage[0]);
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            const parsedStreams: Stream[] = parsed.map((s: any, i: number) => ({
-              receiver: String(s.receiver || ''),
-              amount: String(s.amount || '0'),
-              interval: String(s.interval || '0'),
-              counter: String(s.counter || '0'),
-              streamId: s.streamId || `s-${i}`,
-            }));
-            setStreams(parsedStreams);
-            console.log('Loaded streams from STREAMS key:', parsedStreams);
-            return;
-          }
-        } catch (err) {
-          console.warn('Failed to parse STREAMS storage, falling back to legacy keys', err);
-        }
-      }
-
-      // Fallback: legacy per-key storage
-      const keys = [
-        strToBytes('receiver'),
-        strToBytes('amount'),
-        strToBytes('interval'),
-        strToBytes('counter'),
-      ];
-
-      const storage = await pub.readStorage(CONTRACT_ADDRESS, keys);
-      console.log('Raw legacy storage:', storage);
-
-      const hasData = storage && storage.some((s) => s && s.length > 0);
-      if (hasData) {
-        const receiver = storage[0] ? new TextDecoder().decode(storage[0]) : '';
-        const amount = storage[1] ? new TextDecoder().decode(storage[1]) : '0';
-        const interval = storage[2] ? new TextDecoder().decode(storage[2]) : '0';
-        const counter = storage[3] ? new TextDecoder().decode(storage[3]) : '0';
-
-        if (receiver) {
-          const stream: Stream = {
-            receiver,
-            amount,
-            interval,
-            counter,
-            streamId: `${receiver}-${Date.now()}`,
-          };
-          setStreams([stream]);
-          console.log('Stream fetched (legacy):', stream);
-        } else {
-          setStreams([]);
-        }
-      } else {
-        setStreams([]);
-      }
-    } catch (e) {
-      console.error('Error fetching streams:', e);
-      setStreams([]);
-    }
+  // Navigate to Active Streams
+  const handleViewStreams = () => {
+    console.log('📍 Navigation: dashboard → active-streams');
+    setStep('active-streams');
   };
 
-  useEffect(() => {
-    fetchStreams();
-    const id = setInterval(fetchStreams, 6000);
-    return () => clearInterval(id);
-  }, []);
-
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!walletConnected || !provider || !account) {
-      toast('Connect wallet first.', 'error');
-      return;
-    }
-
-    const receiverAddr = form.receiver.trim();
-    if (!receiverAddr) {
-      toast('Receiver address cannot be empty.', 'error');
-      return;
-    }
-
-    try {
-      Address.fromString(receiverAddr);
-    } catch (err) {
-      console.error('Address validation error:', err);
-      toast(`Invalid receiver address: ${receiverAddr}`, 'error');
-      return;
-    }
-
-    const args = new Args()
-      .addString(receiverAddr)
-      .addU64(BigInt(Number(form.amount)))
-      .addU64(BigInt(Number(form.interval)));
-
-    setIsSubmitting(true);
-    toast('Submitting...', 'info');
-
-    try {
-      console.log('Creating stream with receiver:', receiverAddr);
-      await createStreamCall(args, account!);
-      toast('Stream created successfully!', 'success');
-      // Fetch streams after a delay to allow contract state update
-      setTimeout(fetchStreams, 2000);
-    } catch (err) {
-      console.error('Error creating stream:', err);
-      toast('Failed to create stream.', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Navigate to Create Stream
+  const handleCreateStream = () => {
+    console.log('📍 Navigation: → create-stream');
+    setStep('create-stream');
   };
 
-  const handleCancelStream = async () => {
-    if (!walletConnected || !provider || !account) {
-      toast('Connect wallet first.', 'error');
-      return;
-    }
-
-    try {
-      await cancelStreamCall(account!);
-      toast('Stream canceled.', 'success');
-      setTimeout(fetchStreams, 2000);
-    } catch {
-      toast('Cancel failed.', 'error');
-    }
+  // Navigate to History
+  const handleViewHistory = () => {
+    console.log('📍 Navigation: dashboard → history');
+    setStep('history');
   };
 
-  const analytics =
-    streams.length > 0
-      ? {
-          totalPayout: Number(streams[0].counter) * Number(streams[0].amount),
-          nextTrigger:
-            Number(streams[0].interval) -
-            (Number(streams[0].counter) % Math.max(1, Number(streams[0].interval))),
-          cyclesCompleted: streams[0].counter,
-        }
-      : null;
+  // Handle stream created successfully
+  const handleStreamCreated = (streamData?: { receiver: string; amount: string; interval: string }) => {
+    console.log('📍 Navigation: create-stream → active-streams');
+    
+    // If in demo mode and stream data provided, add to demo streams
+    if (streamData && !wallet?.provider) {
+      const newStream: DemoStream = {
+        receiver: streamData.receiver,
+        amount: streamData.amount,
+        interval: streamData.interval,
+        counter: '0',
+        streamId: `demo-stream-${Date.now()}`,
+      };
+      setDemoStreams(prev => [...prev, newStream]);
+      console.log('🎨 Demo: Added stream to demo storage', newStream);
+    }
+    
+    setStep('active-streams');
+  };
 
-  if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
-  }
+  // Handle stream canceled
+  const handleCancelStream = (streamId: string) => {
+    console.log('🗑️ Canceling stream:', streamId);
+    setDemoStreams(prev => prev.filter(s => s.streamId !== streamId));
+    console.log('🎨 Demo: Removed stream from demo storage');
+  };
 
+  // Navigate back to Dashboard
+  const handleBackToDashboard = () => {
+    console.log('📍 Navigation: → dashboard');
+    setStep('dashboard');
+  };
+
+  // Render current step with fade-in animation
   return (
-    <div className="app-shell neon-bg">
-      <Toast message={status.message} variant={status.variant} show={showToast} />
+    <div className="animate-fade-in">
+      {step === 'intro' && <IntroPage onGetStarted={handleGetStarted} onDemoMode={handleDemoMode} />}
 
-      <div className="card neon-card">
-        <header className="card__header">
-          <p className="eyebrow neon-eyebrow">CASHSTREAM</p>
-          <h1 className="neon-title">Autonomous Payments on Massa</h1>
-          <p className="lede neon-text">On-chain payment flows that self-trigger every interval.</p>
-        </header>
+      {step === 'connect' && <ConnectWalletPage onConnected={handleWalletConnected} />}
 
-        <div className="card__actions">
-          <button
-            className={`wallet-button neon-button ${
-              walletConnected ? 'wallet-button--connected' : ''
-            }`}
-            onClick={handleConnect}
-          >
-            {walletConnected ? 'Wallet connected' : 'Connect Wallet'}
-          </button>
+      {step === 'dashboard' && wallet && (
+        <DashboardPage
+          wallet={wallet}
+          onViewStreams={handleViewStreams}
+          onCreateStream={handleCreateStream}
+          onViewHistory={handleViewHistory}
+        />
+      )}
 
-          <div className="contract-hint neon-hint">
-            <strong>Network:</strong> Buildnet <br />
-            <strong>Contract:</strong> {CONTRACT_ADDRESS}
-          </div>
-        </div>
+      {step === 'active-streams' && wallet && (
+        <ActiveStreamsPage
+          wallet={wallet}
+          provider={wallet.provider}
+          onCreateStream={handleCreateStream}
+          onBack={handleBackToDashboard}
+          demoStreams={demoStreams}
+          onCancelStream={handleCancelStream}
+        />
+      )}
 
-        <form className="stream-form" onSubmit={handleSubmit}>
-          <label className="form-field neon-field">
-            <span>Receiver Address</span>
-            <input
-              type="text"
-              name="receiver"
-              value={form.receiver}
-              onChange={handleChange}
-              required
-            />
-          </label>
+      {step === 'create-stream' && wallet && (
+        <CreateStreamPage
+          wallet={wallet}
+          provider={wallet.provider}
+          onStreamCreated={handleStreamCreated}
+          onBack={handleBackToDashboard}
+        />
+      )}
 
-          <label className="form-field neon-field">
-            <span>Amount (u64)</span>
-            <input
-              type="number"
-              name="amount"
-              value={form.amount}
-              onChange={handleChange}
-              required
-            />
-          </label>
-
-          <label className="form-field neon-field">
-            <span>Interval (u64 cycles)</span>
-            <input
-              type="number"
-              name="interval"
-              value={form.interval}
-              onChange={handleChange}
-              required
-            />
-          </label>
-
-          <button type="submit" className="primary neon-button" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : 'Create Stream'}
-          </button>
-        </form>
-
-        {analytics && (
-          <div className="analytics-card neon-card">
-            <h3 className="neon-subtitle">Analytics</h3>
-            <p>
-              <strong>Total Payout:</strong> {analytics.totalPayout}
-            </p>
-            <p>
-              <strong>Next Trigger In:</strong> {analytics.nextTrigger} cycles
-            </p>
-            <p>
-              <strong>Cycles Completed:</strong> {analytics.cyclesCompleted}
-            </p>
-          </div>
-        )}
-
-        <h3 className="neon-subtitle">Active Streams</h3>
-
-        {streams.length === 0 ? (
-          <div className="stream-card neon-card">No active streams</div>
-        ) : (
-          streams.map((s, i) => (
-            <div key={i} className="stream-card neon-card">
-              <p>
-                <strong>Receiver:</strong> {s.receiver}
-              </p>
-              <p>
-                <strong>Amount:</strong> {s.amount}
-              </p>
-              <p>
-                <strong>Interval:</strong> {s.interval}
-              </p>
-              <p>
-                <strong>Counter:</strong> {s.counter}
-              </p>
-              <button className="cancel-button neon-danger" onClick={handleCancelStream}>
-                Cancel Stream
-              </button>
-            </div>
-          ))
-        )}
-      </div>
+      {step === 'history' && wallet && (
+        <HistoryPage
+          wallet={wallet}
+          provider={wallet.provider}
+          onBack={handleBackToDashboard}
+          onCreateStream={handleCreateStream}
+        />
+      )}
     </div>
   );
-}
-
-function Toast({
-  message,
-  variant,
-  show,
-}: {
-  message: string;
-  variant: StatusVariant;
-  show: boolean;
-}) {
-  if (!show) return null;
-  return <div className={`toast toast--${variant}`}>{message}</div>;
-}
-
-/* -------------------------
-   FIXED GAS + FEE FUNCTIONS
--------------------------- */
-
-async function createStreamCall(args: Args, account: Account) {
-  try {
-    // Dynamically require to remain compatible with installed massa-web3
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mw3: any = require('@massalabs/massa-web3');
-    const WalletClient = mw3.WalletClient ?? mw3.Wallet;
-    const wallet = new WalletClient(RPC_URL, account);
-    console.log('Calling createStream on contract (signed):', CONTRACT_ADDRESS);
-    const result = await wallet.callSmartContract({
-      targetAddress: CONTRACT_ADDRESS,
-      functionName: 'createStream',
-      parameter: args.serialize(),
-      maxGas: 100000000,
-      fee: BigInt(100000000),
-      coins: 0n,
-    });
-    console.log('createStream result:', result);
-    return result;
-  } catch (err) {
-    console.error('createStreamCall error:', err);
-    throw err;
-  }
-}
-
-async function cancelStreamCall(account: Account) {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mw3: any = require('@massalabs/massa-web3');
-    const WalletClient = mw3.WalletClient ?? mw3.Wallet;
-    const wallet = new WalletClient(RPC_URL, account);
-    console.log('Calling cancelStream on contract (signed):', CONTRACT_ADDRESS);
-    const result = await wallet.callSmartContract({
-      targetAddress: CONTRACT_ADDRESS,
-      functionName: 'cancelStream',
-      parameter: new Args().serialize(),
-      maxGas: 100000000,
-      fee: BigInt(100000000),
-      coins: 0n,
-    });
-    console.log('cancelStream result:', result);
-    return result;
-  } catch (err) {
-    console.error('cancelStreamCall error:', err);
-    throw err;
-  }
 }
 
 export default App;
