@@ -61,7 +61,8 @@ export const ActiveStreamsPage: React.FC<ActiveStreamsPageProps> = ({
 
   // Fetch streams from blockchain
   const fetchStreams = async (isRefresh = false) => {
-    if (!CONTRACT_ADDRESS) {
+    // Skip contract check in demo mode
+    if (!CONTRACT_ADDRESS && provider) {
       console.warn('Contract address not configured');
       setLoading(false);
       return;

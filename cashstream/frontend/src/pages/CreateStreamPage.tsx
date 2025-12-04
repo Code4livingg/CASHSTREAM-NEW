@@ -111,7 +111,8 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
       return;
     }
 
-    if (!CONTRACT_ADDRESS) {
+    // Only check contract address if not in demo mode
+    if (!CONTRACT_ADDRESS && provider) {
       setError('Contract address not configured');
       return;
     }

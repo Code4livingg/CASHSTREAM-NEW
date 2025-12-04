@@ -59,7 +59,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
   // Fetch history from blockchain
   const fetchHistory = async (isRefresh = false) => {
-    if (!CONTRACT_ADDRESS) {
+    // Skip contract check in demo mode
+    if (!CONTRACT_ADDRESS && provider) {
       console.warn('Contract address not configured');
       setLoading(false);
       return;
