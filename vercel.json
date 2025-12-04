@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd cashstream/frontend && npm run build",
+  "outputDirectory": "cashstream/frontend/dist",
+  "installCommand": "cd cashstream/frontend && npm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
