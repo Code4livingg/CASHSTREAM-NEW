@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { initWalletConnection, formatAddress, formatBalance, type WalletConnection, type WalletError } from '../lib/massaWallet';
+import { MatrixBackground } from '../components';
 import '../styles/design-system.css';
 
 /**
@@ -69,16 +70,17 @@ export const ConnectWalletPage: React.FC<ConnectWalletPageProps> = ({ onConnecte
   // Show success state
   if (showSuccess && wallet) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--gradient-bg)',
-          padding: 'var(--space-xl)',
-        }}
-      >
+      <MatrixBackground>
+        <div
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--gradient-bg)',
+            padding: 'var(--space-xl)',
+          }}
+        >
         <div
           className="card animate-scale-in"
           style={{
@@ -142,24 +144,26 @@ export const ConnectWalletPage: React.FC<ConnectWalletPageProps> = ({ onConnecte
             Redirecting to dashboard...
           </p>
         </div>
-      </div>
+        </div>
+      </MatrixBackground>
     );
   }
 
   return (
-    <div
-      className="connect-wallet-container"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--gradient-bg)',
-        padding: 'var(--space-xl)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <MatrixBackground>
+      <div
+        className="connect-wallet-container"
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--gradient-bg)',
+          padding: 'var(--space-xl)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
       {/* Animated background orbs */}
       <div
         className="connect-wallet-orb connect-wallet-orb-cyan"
@@ -437,7 +441,8 @@ export const ConnectWalletPage: React.FC<ConnectWalletPageProps> = ({ onConnecte
           }
         }
       `}</style>
-    </div>
+      </div>
+    </MatrixBackground>
   );
 };
 

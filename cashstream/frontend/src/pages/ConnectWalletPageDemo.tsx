@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ConnectWalletPage from './ConnectWalletPage';
+import { MatrixBackground } from '../components';
 import '../styles/design-system.css';
 
 /**
@@ -56,16 +57,17 @@ export const ConnectWalletPageDemo: React.FC = () => {
 
   if (isConnected) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--gradient-bg)',
-          padding: 'var(--space-xl)',
-        }}
-      >
+      <MatrixBackground>
+        <div
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--gradient-bg)',
+            padding: 'var(--space-xl)',
+          }}
+        >
         <div
           className="card animate-scale-in"
           style={{
@@ -104,7 +106,8 @@ export const ConnectWalletPageDemo: React.FC = () => {
             Resetting demo in 3 seconds...
           </p>
         </div>
-      </div>
+        </div>
+      </MatrixBackground>
     );
   }
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { MatrixBackground } from '../components';
 import '../styles/design-system.css';
 
 /**
@@ -25,19 +26,20 @@ interface IntroPageProps {
 
 export const IntroPage: React.FC<IntroPageProps> = ({ onGetStarted, onDemoMode }) => {
   return (
-    <div
-      className="intro-page-container"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--gradient-bg)',
-        padding: 'var(--space-xl)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <MatrixBackground>
+      <div
+        className="intro-page-container"
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--gradient-bg)',
+          padding: 'var(--space-xl)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
       {/* Animated background orbs */}
       <div
         className="intro-page-orb intro-page-orb-cyan"
@@ -248,7 +250,8 @@ export const IntroPage: React.FC<IntroPageProps> = ({ onGetStarted, onDemoMode }
           }
         }
       `}</style>
-    </div>
+      </div>
+    </MatrixBackground>
   );
 };
 

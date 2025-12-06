@@ -3,6 +3,7 @@ import type { JsonRpcProvider } from '@massalabs/massa-web3';
 import { strToBytes } from '@massalabs/massa-web3';
 import type { WalletConnection } from '../lib/massaWallet';
 import { formatAddress } from '../lib/massaWallet';
+import { MatrixBackground } from '../components';
 import '../styles/design-system.css';
 
 /**
@@ -204,14 +205,15 @@ export const ActiveStreamsPage: React.FC<ActiveStreamsPageProps> = ({
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--gradient-bg)',
-        padding: 'var(--space-xl)',
-      }}
-    >
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <MatrixBackground>
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'var(--gradient-bg)',
+          padding: 'var(--space-xl)',
+        }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
         <header
           className="animate-fade-in-up"
@@ -468,8 +470,9 @@ export const ActiveStreamsPage: React.FC<ActiveStreamsPageProps> = ({
             </p>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </MatrixBackground>
   );
 };
 

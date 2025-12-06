@@ -3,6 +3,7 @@ import type { JsonRpcProvider } from '@massalabs/massa-web3';
 import { strToBytes } from '@massalabs/massa-web3';
 import type { WalletConnection } from '../lib/massaWallet';
 import { formatAddress } from '../lib/massaWallet';
+import { MatrixBackground, MatrixTimeline } from '../components';
 import '../styles/design-system.css';
 
 /**
@@ -162,10 +163,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     fetchHistory(true);
   };
 
-  // Separate completed and canceled streams
-  const completedStreams = history.filter((entry) => entry.status === 'Completed');
-  const canceledStreams = history.filter((entry) => entry.status === 'Canceled');
-
   // Format timestamp
   const formatTimestamp = (timestamp?: string): string => {
     if (!timestamp) return 'No timestamp available';
@@ -179,14 +176,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--gradient-bg)',
-        padding: 'var(--space-xl)',
-      }}
-    >
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <MatrixBackground>
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'var(--gradient-bg)',
+          padding: 'var(--space-xl)',
+        }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
         <header
           className="animate-fade-in-up"
@@ -299,310 +297,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </div>
         )}
 
-        {/* History Content */}
+        {/* History Content - Matrix Timeline */}
         {!loading && history.length > 0 && (
           <div>
-            {/* Completed Streams Section */}
-            {completedStreams.length > 0 && (
-              <div style={{ marginBottom: 'var(--space-3xl)' }}>
-                <div
-                  className="animate-fade-in-up"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--space-md)',
-                    marginBottom: 'var(--space-lg)',
-                    animationDelay: '0.1s',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      background: 'rgba(57, 255, 20, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.25rem',
-                    }}
-                  >
-                    ✅
-                  </div>
-                  <div>
-                    <h2 className="text-h2" style={{ marginBottom: 'var(--space-xs)' }}>
-                      Completed Streams
-                    </h2>
-                    <p className="text-small" style={{ color: 'var(--color-text-tertiary)' }}>
-                      {completedStreams.length} stream{completedStreams.length !== 1 ? 's' : ''} completed successfully
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-                    gap: 'var(--space-lg)',
-                  }}
-                >
-                  {completedStreams.map((entry, index) => (
-                    <div
-                      key={entry.historyId}
-                      className="card card-hover animate-fade-in-up"
-                      style={{
-                        animationDelay: `${0.2 + index * 0.1}s`,
-                        borderLeft: '3px solid var(--color-success)',
-                      }}
-                    >
-                      <div className="card-header">
-                        <div>
-                          <p className="eyebrow" style={{ marginBottom: 'var(--space-xs)' }}>
-                            Completed Stream
-                          </p>
-                          <span className="badge badge-success">✅ Completed</span>
-                        </div>
-                      </div>
-
-                      <div className="card-body">
-                        {/* Receiver */}
-                        <div style={{ marginBottom: 'var(--space-md)' }}>
-                          <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                            Receiver
-                          </p>
-                          <p
-                            className="text-body"
-                            style={{
-                              fontFamily: 'var(--font-mono)',
-                              color: 'var(--color-neon-cyan)',
-                              fontWeight: 'var(--font-semibold)',
-                              wordBreak: 'break-all',
-                            }}
-                          >
-                            {formatAddress(entry.receiver)}
-                          </p>
-                        </div>
-
-                        {/* Stats Grid */}
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: 'var(--space-md)',
-                            marginBottom: 'var(--space-md)',
-                          }}
-                        >
-                          {/* Total Streamed */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Total Streamed
-                            </p>
-                            <p className="text-h3 text-gradient-primary" style={{ fontWeight: 'var(--font-bold)' }}>
-                              {entry.totalStreamed}
-                            </p>
-                          </div>
-
-                          {/* Interval */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Interval
-                            </p>
-                            <p className="text-body" style={{ fontWeight: 'var(--font-semibold)' }}>
-                              {entry.interval} cycles
-                            </p>
-                          </div>
-
-                          {/* Amount per Interval */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Amount/Interval
-                            </p>
-                            <p className="text-body" style={{ fontWeight: 'var(--font-semibold)' }}>
-                              {entry.amount}
-                            </p>
-                          </div>
-
-                          {/* Total Cycles */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Total Cycles
-                            </p>
-                            <p className="text-body" style={{ fontWeight: 'var(--font-semibold)' }}>
-                              {entry.counter}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Timestamp */}
-                        <div
-                          style={{
-                            padding: 'var(--space-sm)',
-                            background: 'rgba(57, 255, 20, 0.05)',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid rgba(57, 255, 20, 0.1)',
-                          }}
-                        >
-                          <p className="text-small" style={{ color: 'var(--color-text-tertiary)' }}>
-                            🕐 {formatTimestamp(entry.timestamp)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Canceled Streams Section */}
-            {canceledStreams.length > 0 && (
-              <div>
-                <div
-                  className="animate-fade-in-up"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--space-md)',
-                    marginBottom: 'var(--space-lg)',
-                    animationDelay: `${0.1 + completedStreams.length * 0.1}s`,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      background: 'rgba(255, 107, 107, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.25rem',
-                    }}
-                  >
-                    ❌
-                  </div>
-                  <div>
-                    <h2 className="text-h2" style={{ marginBottom: 'var(--space-xs)' }}>
-                      Canceled Streams
-                    </h2>
-                    <p className="text-small" style={{ color: 'var(--color-text-tertiary)' }}>
-                      {canceledStreams.length} stream{canceledStreams.length !== 1 ? 's' : ''} canceled
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-                    gap: 'var(--space-lg)',
-                  }}
-                >
-                  {canceledStreams.map((entry, index) => (
-                    <div
-                      key={entry.historyId}
-                      className="card card-hover animate-fade-in-up"
-                      style={{
-                        animationDelay: `${0.2 + (completedStreams.length + index) * 0.1}s`,
-                        borderLeft: '3px solid var(--color-error)',
-                      }}
-                    >
-                      <div className="card-header">
-                        <div>
-                          <p className="eyebrow" style={{ marginBottom: 'var(--space-xs)' }}>
-                            Canceled Stream
-                          </p>
-                          <span className="badge badge-error">❌ Canceled</span>
-                        </div>
-                      </div>
-
-                      <div className="card-body">
-                        {/* Receiver */}
-                        <div style={{ marginBottom: 'var(--space-md)' }}>
-                          <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                            Receiver
-                          </p>
-                          <p
-                            className="text-body"
-                            style={{
-                              fontFamily: 'var(--font-mono)',
-                              color: 'var(--color-neon-cyan)',
-                              fontWeight: 'var(--font-semibold)',
-                              wordBreak: 'break-all',
-                            }}
-                          >
-                            {formatAddress(entry.receiver)}
-                          </p>
-                        </div>
-
-                        {/* Stats Grid */}
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: 'var(--space-md)',
-                            marginBottom: 'var(--space-md)',
-                          }}
-                        >
-                          {/* Total Streamed */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Total Streamed
-                            </p>
-                            <p className="text-h3" style={{ fontWeight: 'var(--font-bold)', color: 'var(--color-error)' }}>
-                              {entry.totalStreamed}
-                            </p>
-                          </div>
-
-                          {/* Interval */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Interval
-                            </p>
-                            <p className="text-body" style={{ fontWeight: 'var(--font-semibold)' }}>
-                              {entry.interval} cycles
-                            </p>
-                          </div>
-
-                          {/* Amount per Interval */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Amount/Interval
-                            </p>
-                            <p className="text-body" style={{ fontWeight: 'var(--font-semibold)' }}>
-                              {entry.amount}
-                            </p>
-                          </div>
-
-                          {/* Total Cycles */}
-                          <div>
-                            <p className="text-caption" style={{ marginBottom: 'var(--space-xs)' }}>
-                              Total Cycles
-                            </p>
-                            <p className="text-body" style={{ fontWeight: 'var(--font-semibold)' }}>
-                              {entry.counter}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Timestamp */}
-                        <div
-                          style={{
-                            padding: 'var(--space-sm)',
-                            background: 'rgba(255, 107, 107, 0.05)',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid rgba(255, 107, 107, 0.1)',
-                          }}
-                        >
-                          <p className="text-small" style={{ color: 'var(--color-text-tertiary)' }}>
-                            🕐 {formatTimestamp(entry.timestamp)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Matrix Timeline */}
+            <MatrixTimeline
+              entries={history}
+              formatAddress={formatAddress}
+              formatTimestamp={formatTimestamp}
+            />
 
             {/* Info Tip */}
             <div
@@ -622,8 +325,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </MatrixBackground>
   );
 };
 

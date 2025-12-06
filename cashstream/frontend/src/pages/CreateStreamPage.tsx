@@ -3,6 +3,7 @@ import type { JsonRpcProvider } from '@massalabs/massa-web3';
 import { Args, Address } from '@massalabs/massa-web3';
 import type { WalletConnection } from '../lib/massaWallet';
 import { formatAddress } from '../lib/massaWallet';
+import { VaultScanOverlay, MatrixBackground, TerminalLogModal } from '../components';
 import '../styles/design-system.css';
 
 /**
@@ -54,6 +55,10 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showAnimationOverlay, setShowAnimationOverlay] = useState(false);
+  const [showTerminalModal, setShowTerminalModal] = useState(false);
+  const [blockNumber, setBlockNumber] = useState<string>('');
+  const [txHash, setTxHash] = useState<string>('');
   const [createdStream, setCreatedStream] = useState<{
     receiver: string;
     amount: string;
@@ -99,7 +104,7 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
     return null;
   };
 
-  // Create stream on blockchain
+  // Handle form submission - show animation overlay
   const handleCreateStream = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -117,6 +122,12 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
       return;
     }
 
+    // Show animation overlay instead of immediately calling contract
+    setShowAnimationOverlay(true);
+  };
+
+  // Execute the actual contract call
+  const executeCreateStream = async () => {
     setLoading(true);
 
     try {
@@ -131,6 +142,10 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 1500));
         console.log('✅ Demo: Stream created successfully!');
+        
+        // Set mock transaction details for demo
+        setBlockNumber('12345678');
+        setTxHash('0xabc123def456789abcdef0123456789abcdef0123456789abcdef0123456789ab');
       } else {
         // Real mode: Call blockchain
         // Build Args
@@ -154,6 +169,14 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
         });
 
         console.log('✅ Stream created successfully!', result);
+        
+        // Extract transaction details from result
+        // The result structure may vary, adjust based on actual Massa Web3 response
+        const txId = result?.operationId || result?.id || 'N/A';
+        const block = result?.blockId || result?.block || 'N/A';
+        
+        setTxHash(txId);
+        setBlockNumber(block);
       }
 
       // Store created stream data
@@ -164,27 +187,36 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
       };
       
       setCreatedStream(streamData);
-
-      // Show success state
-      setSuccess(true);
       setLoading(false);
+
+      // Close animation overlay
+      setShowAnimationOverlay(false);
+
+      // Show terminal modal with transaction details
+      setShowTerminalModal(true);
 
       // Clear form
       setReceiver('');
       setAmount('');
       setInterval('');
-
-      // Navigate after 1 second (faster redirect)
-      setTimeout(() => {
-        if (onStreamCreated) {
-          onStreamCreated(streamData);
-        }
-      }, 1000);
     } catch (err) {
       console.error('❌ Failed to create stream:', err);
       setError(err instanceof Error ? err.message : 'Failed to create stream');
       setLoading(false);
     }
+  };
+
+  // Handle terminal modal close
+  const handleTerminalModalClose = () => {
+    setShowTerminalModal(false);
+    setSuccess(true);
+    
+    // Navigate after brief delay
+    setTimeout(() => {
+      if (onStreamCreated && createdStream) {
+        onStreamCreated(createdStream);
+      }
+    }, 500);
   };
 
   // Success state
@@ -296,16 +328,40 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
     );
   }
 
+  // Render VaultScanOverlay
+  const renderVaultOverlay = () => (
+    <VaultScanOverlay
+      open={showAnimationOverlay}
+      walletAddress={wallet.address}
+      receiverAddress={receiver}
+      amountLabel={`${amount} MASSA`}
+      onCancel={() => setShowAnimationOverlay(false)}
+      onExecute={executeCreateStream}
+    />
+  );
+
   // Form state
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--gradient-bg)',
-        padding: 'var(--space-xl)',
-      }}
-    >
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <>
+      {renderVaultOverlay()}
+      
+      {/* Terminal Log Modal */}
+      <TerminalLogModal
+        isOpen={showTerminalModal}
+        blockNumber={blockNumber}
+        txHash={txHash}
+        onClose={handleTerminalModalClose}
+      />
+      
+      <MatrixBackground>
+        <div
+          style={{
+            minHeight: '100vh',
+            background: 'var(--gradient-bg)',
+            padding: 'var(--space-xl)',
+          }}
+        >
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         {/* Header */}
         <header className="animate-fade-in-up" style={{ marginBottom: 'var(--space-2xl)' }}>
           {onBack && (
@@ -452,8 +508,10 @@ export const CreateStreamPage: React.FC<CreateStreamPageProps> = ({
             💡 <strong style={{ color: 'var(--color-neon-cyan)' }}>Pro Tip:</strong> Once created, your stream will execute autonomously on-chain without manual intervention
           </p>
         </div>
+        </div>
       </div>
-    </div>
+      </MatrixBackground>
+    </>
   );
 };
 
